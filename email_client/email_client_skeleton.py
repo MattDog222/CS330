@@ -2,64 +2,67 @@ from socket import *
 import base64
 import ssl
 
-msg = "\r\n I love computer networks!"
-endmsg = "\r\n.\r\n"
+CRLF = "\r\n"
+msg = "I love refactoring!"
 
-# Choose a mail server (e.g. Google mail server) and call it mailserver
-mailserver = #Fill in start   #Fill in end
 
-# Create a TCP socket called clientSocket
-#Fill in start
-#Fill in end
+# Send command to email server and print response
+def send_command(command):
+    global clientSocket
+    clientSocket.send(command.encode())
+    server_response = clientSocket.recv(1024).decode()
+    print(command, end="")
+    print(server_response)
+
+
+# IMPORTANT: port change for SSL
+# https://stackoverflow.com/questions/57715289/how-to-fix-ssl-sslerror-ssl-wrong-version-number-wrong-version-number-ssl
+mailserver = ("smtp.gmail.com", 465)
+
+clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket = ssl.wrap_socket(clientSocket)
 clientSocket.connect(mailserver)
-recv = clientSocket.recv(1024).decode()
-print(recv)
-if recv[:3] != '220':
+response = clientSocket.recv(1024).decode()
+print(f"Connection: {response}")
+if response[:3] != '220':
     print('220 reply not received from server.')
 
 # Send HELO command and print server response.
-heloCommand = 'HELO Alice\r\n'
-clientSocket.send(heloCommand.encode())
-recv1 = clientSocket.recv(1024).decode()
-print(recv1)
-if recv1[:3] != '250':
-    print('250 reply not received from server.')
+HELO = 'HELO Alice\r\n'
+send_command(HELO)
 
 # Authentication using base64
-# For Gmail, it is recommended to create an "app password" and
-# use that value in the password field instead of the regular password.
-# username and password values should be enclosed in quotes:
-# Example: username = "sample@gmail.com"
-username = #Fill in start   #Fill in end
-password = #Fill in start   #Fill in end
-base64_str = ("\x00"+username+"\x00"+password).encode()
+# For Gmail, it is recommended to create an "app password"
+username = "wilder.mdog@gmail.com"
+password = "16 character app password" # Redacted
+base64_str = ("\x00" + username + "\x00" + password).encode()
 base64_str = base64.b64encode(base64_str)
-authMsg = "AUTH PLAIN ".encode()+base64_str+"\r\n".encode()
+authMsg = "AUTH PLAIN ".encode() + base64_str + CRLF.encode()
 clientSocket.send(authMsg)
 recv_auth = clientSocket.recv(1024)
+print("AUTHENTICATION")
 print(recv_auth.decode())
 
-# Send MAIL FROM command and print server response.
-# Fill in start
-# Fill in end
+#############################
+# IMPORTANT
+# 555 5.5.2 Syntax error
+# FIX := https://blog.yimingliu.com/2008/11/26/email-servers-and-mail-from-syntax/
+##############################
+MAIL_FROM = f"MAIL FROM: <{username}>{CRLF}"
+send_command(MAIL_FROM)
 
-# Send RCPT TO command and print server response. 
-# Fill in start
-# Fill in end
+RCPT_TO = f"RCPT TO: <{username}>{CRLF}"
+send_command(RCPT_TO)
 
-# Send DATA command and print server response. 
-# Fill in start
-# Fill in end
+DATA = f"DATA{CRLF}"
+send_command(DATA)
 
-# Send message data.
-# Fill in start
-# Fill in end
-
-# Message ends with a single period.
-# Fill in start
-# Fill in end
+# Send message data. # Message ends with a single period.
+MESSAGE = f"Subject: plz give me an A{CRLF*2}{msg}{CRLF}.{CRLF}"
+send_command(MESSAGE)
 
 # Send QUIT command and get server response.
-# Fill in start
-# Fill in end
+QUIT = f"QUIT{CRLF}"
+send_command(QUIT)
+
+clientSocket.close()
