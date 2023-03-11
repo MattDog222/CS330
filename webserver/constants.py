@@ -1,0 +1,5 @@
+HOST_NAME = 'localhost'
+PORT_NUMBER = 6969
+BUFFER_SIZE = 1024
+BACKLOG_SIZE = 420
+CRLF = "\r\n"
